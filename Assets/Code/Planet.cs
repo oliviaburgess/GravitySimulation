@@ -2,11 +2,26 @@ using UnityEngine;
 
 public class Planet : MonoBehaviour
 {
+    const float G = 667.4f;
     public Color color;
-    public float mass = 1.0f;
+    public float mass = 1000f;
     public float size = 1.0f; // Radius of the planet
 
     private float initialSize;
+
+    public Rigidbody rigidBody;
+
+    void FixedUpdate()
+    {
+        Planet[] planets = FindObjectsOfType<Planet>();
+        foreach (Planet p in planets)
+        {
+            if (p != this)
+            {
+                GravitationalAttraction(p);
+            }
+        }
+    }
 
     private void Start()
     {
@@ -27,8 +42,26 @@ public class Planet : MonoBehaviour
     // Function to apply force to the planet
     public void ApplyForce(Vector3 force, float dt)
     {
-        // Implement your physics calculations here
+
     }
+
+    void GravitationalAttraction(Planet planetToAttract)
+    {
+        Rigidbody rbToAttract = planetToAttract.rigidBody;
+
+        Vector3 direction = rigidBody.position - rbToAttract.position;
+
+        //The lenght of the direction vector is the distance between the bodies centres
+        float distance = direction.magnitude;
+
+        float forceMagnitude = G * (this.mass * planetToAttract.mass) / Mathf.Pow(distance, 2);
+
+        Vector3 force = direction.normalized * forceMagnitude;
+
+        rbToAttract.AddForce(force);
+    }
+
+
 
     // Function to set the color of the planet
     public void SetColor(Color newColor)
