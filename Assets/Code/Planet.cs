@@ -11,11 +11,14 @@ public class Planet : MonoBehaviour
     private float initialSize;
     private GameObject rotationAxisObject;
     private LineRenderer lineRenderer;
+    public bool showRotationAxis = true;
+    private TrailRenderer orbitTrail;
+
+    public bool showOrbitTrail = true;
     private Vector3 rotationAxis = Vector3.up;
     public float rotationSpeed = 10.0f;
 
     public Vector3 initialVelocity; // Initial velocity of the planet
-
 
     public Rigidbody rigidBody;
 
@@ -24,7 +27,7 @@ public class Planet : MonoBehaviour
         Planet[] planets = FindObjectsOfType<Planet>();
         foreach (Planet p in planets)
         {
-            if (p != this)
+            if (p != this) //Only apply force between another planet
             {
                 GravitationalAttraction(p);
             }
@@ -33,8 +36,8 @@ public class Planet : MonoBehaviour
         // Rotate the planet around its axis
         transform.Rotate(rotationAxis, rotationSpeed * Time.fixedDeltaTime);
 
-        // Update the rotation axis visualization
-        if (rotationAxisObject != null)
+        // Update the rotation axis visualization depending on settings
+        if (rotationAxisObject != null && showRotationAxis)
         {
             UpdateRotationAxis();
         }
@@ -51,6 +54,9 @@ public class Planet : MonoBehaviour
         // Create the rotation axis visualization
         CreateRotationAxis();
 
+        // Create the orbit ellipse visualization
+        CreateOrbitTrail();
+
         // Apply axial tilt
         ApplyAxialTilt();
 
@@ -63,8 +69,14 @@ public class Planet : MonoBehaviour
     {
         // Update the size of the planet based on the 'size' property
         transform.localScale = Vector3.one * (size * initialSize);
-    }
 
+        //Show/hide axis line depending on settings 
+        rotationAxisObject.SetActive(showRotationAxis); 
+
+        //Show/hide trail depending on settings 
+        orbitTrail.enabled = showOrbitTrail;
+
+    }
 
     void GravitationalAttraction(Planet planetToAttract)
     {
@@ -125,4 +137,21 @@ public class Planet : MonoBehaviour
     {
         rotationAxis = Quaternion.Euler(axialTilt, 0, 0) * rotationAxis;
     }
+
+    private void CreateOrbitTrail()
+    {
+        orbitTrail = gameObject.AddComponent<TrailRenderer>();
+        orbitTrail.time = 3.0f;
+        orbitTrail.startWidth = 0.25f;
+        orbitTrail.endWidth = 0.0f;
+
+        //Get a random colour and assign it to the planet's trail
+        Color randomColor = new Color(Random.value, Random.value, Random.value, 1.0f);
+        orbitTrail.material = new Material(Shader.Find("Sprites/Default"));
+        orbitTrail.material.color = randomColor;
+
+
+    }
+
+    
 }
