@@ -2,32 +2,33 @@ using UnityEngine;
 
 public class Planet : MonoBehaviour
 {
-    const float G = 66.7430f;
     public Color color;
     public float mass = 1.0f;
-    public float size = 1.0f; // Radius of the planet
-    public float axialTilt = 0.0f; // Angle of axial tilt in degrees
-
+    public float size = 1.0f; 
     private float initialSize;
+    const float G = 66.7430f;
+
+    public float axialTilt = 0.0f; 
     private GameObject rotationAxisObject;
     private LineRenderer lineRenderer;
     public bool showRotationAxis = true;
-    private TrailRenderer orbitTrail;
-
-    public bool showOrbitTrail = true;
     private Vector3 rotationAxis = Vector3.up;
     public float rotationSpeed = 10.0f;
 
-    public Vector3 initialVelocity; // Initial velocity of the planet
+    private TrailRenderer orbitTrail;
 
-    public Rigidbody rigidBody;
+    public bool showOrbitTrail = true;
+
+    public Vector3 initialVelocity;
+
+    private Rigidbody rigidBody;
 
     void FixedUpdate()
     {
         Planet[] planets = FindObjectsOfType<Planet>();
         foreach (Planet p in planets)
         {
-            if (p != this) //Only apply force between another planet
+            if (p != this)
             {
                 GravitationalAttraction(p);
             }
@@ -45,6 +46,13 @@ public class Planet : MonoBehaviour
 
     private void Start()
     {
+        
+        // Create and attach the Rigidbody component
+        CreateRigidbody();
+
+        // Set the initial velocity
+        rigidBody.velocity = initialVelocity;
+
         // Store the initial size for scaling purposes
         initialSize = transform.localScale.x;
 
@@ -54,28 +62,23 @@ public class Planet : MonoBehaviour
         // Create the rotation axis visualization
         CreateRotationAxis();
 
-        // Create the orbit ellipse visualization
-        CreateOrbitTrail();
-
         // Apply axial tilt
         ApplyAxialTilt();
 
-        rigidBody.velocity = initialVelocity;
-
+        // Create the orbit ellipse visualization
+        CreateOrbitTrail();
     }
 
-    // Update is called once per frame
     void Update()
     {
+        // Show/hide axis line depending on settings 
+        rotationAxisObject.SetActive(showRotationAxis);
+
         // Update the size of the planet based on the 'size' property
         transform.localScale = Vector3.one * (size * initialSize);
 
-        //Show/hide axis line depending on settings 
-        rotationAxisObject.SetActive(showRotationAxis); 
-
-        //Show/hide trail depending on settings 
+        // Show/hide trail depending on settings 
         orbitTrail.enabled = showOrbitTrail;
-
     }
 
     void GravitationalAttraction(Planet planetToAttract)
@@ -84,15 +87,11 @@ public class Planet : MonoBehaviour
 
         Vector3 direction = rigidBody.position - rbToAttract.position;
 
-        //The length of the direction vector is the distance between the bodies centers
         float distance = direction.magnitude;
 
         float forceMagnitude = G * (this.mass * planetToAttract.mass) / Mathf.Pow(distance, 2);
 
         Vector3 force = direction.normalized * forceMagnitude;
-
-        //Debug.Log("Force Magnitude: " + forceMagnitude);
-
 
         rbToAttract.AddForce(force);
     }
@@ -145,13 +144,15 @@ public class Planet : MonoBehaviour
         orbitTrail.startWidth = 0.25f;
         orbitTrail.endWidth = 0.0f;
 
-        //Get a random colour and assign it to the planet's trail
         Color randomColor = new Color(Random.value, Random.value, Random.value, 1.0f);
         orbitTrail.material = new Material(Shader.Find("Sprites/Default"));
         orbitTrail.material.color = randomColor;
-
-
     }
 
-    
+    private void CreateRigidbody()
+    {
+        rigidBody = gameObject.AddComponent<Rigidbody>();
+        rigidBody.mass = mass;
+        rigidBody.useGravity = false;
+    }
 }
